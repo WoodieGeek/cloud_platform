@@ -20,7 +20,7 @@ namespace {
 }
 
 
-std::optional<TRequest> Parse(const std::string_view data) {
+std::optional<TRequest> TRequestParser::Parse(const std::string_view data) {
     std::vector<std::string> lines;
     boost::split(lines, data, [](char c) {return c == '\n';});
     if (lines.empty()) {

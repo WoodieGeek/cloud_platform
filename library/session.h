@@ -7,7 +7,7 @@ public:
     void Start();
 private:
     void DoRead();
-    void DoWrite(std::size_t);
+    void DoWrite(std::string);
 private:
     boost::asio::ip::tcp::socket Socket_;
     static constexpr std::size_t MESSAGE_LENGTH = 1024;

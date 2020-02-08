@@ -8,9 +8,8 @@
 
 class TResolver {
 public:
-
     TResolver();
-    void Resolve(TRequest request) const;
+    std::string Resolve(TRequest request) const;
 private:
     std::unordered_map<std::string, std::function<std::string(TRequest)>> ResolveHandle_;
 };

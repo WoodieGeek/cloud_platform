@@ -1,4 +1,7 @@
 #include "session.h"
+#include "resolver.h"
+#include "reply.h"
+#include "request_parser.h"
 
 #include <string>
 #include <iostream>
@@ -15,17 +18,25 @@ void TSession::DoRead() {
     auto self(shared_from_this());
     Socket_.async_read_some(boost::asio::buffer(Data_, MESSAGE_LENGTH), [this, self](boost::system::error_code ec, std::size_t length) {
         if (!ec) {
-            std::cout << "!!\n";
-            std::cout << std::string(Data_, length) << std::endl;
-            DoWrite(length);
+            std::cout << "TC\n";
+            //std::cout << std::string(Data_, length) << std::endl;
+            TResolver resolver;
+            const auto& request = TRequestParser::Parse(std::string(Data_, length));
+            TReply reply;
+            if (request) {
+                reply.Content = resolver.Resolve(*request);
+            }
+            else {
+                reply.Content = "Bad request";
+            }
+            DoWrite(reply.Serialize());
         }
     });
 }
 
-void TSession::DoWrite(std::size_t) {
+void TSession::DoWrite(std::string data) {
     auto self(shared_from_this());
-    std::string msg = "HTTP/1.1 200 OK\r\n\r\nSOME TEXT";
-    boost::asio::async_write(Socket_, boost::asio::buffer(msg), [this, self] (boost::system::error_code ec, std::size_t) {
+    boost::asio::async_write(Socket_, boost::asio::buffer(data), [this, self] (boost::system::error_code ec, std::size_t) {
         if (!ec) {
             Socket_.close();
         }
