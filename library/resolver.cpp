@@ -4,7 +4,7 @@ TResolver::TResolver() {
     auto tmp = [](TRequest ) {
         return "index ans";
     };
-    ResolveHandle_["index"] = tmp;
+    ResolveHandle_["/index"] = tmp;
 }
 
 std::string TResolver::Resolve(TRequest request) const {

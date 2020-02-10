@@ -1,6 +1,9 @@
 #include "request_parser.h"
 #include <boost/algorithm/string.hpp>
 
+
+#include <iostream>
+
 namespace {
     void AddUriAndCgi(std::string_view data, TRequest result) {
         auto endUri = data.find_first_of('?');

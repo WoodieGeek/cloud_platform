@@ -9,7 +9,7 @@ include_directories(${Boost_INCLUDE_DIRS} ../library)
 
 link_directories(../library)
 
-# add_subdirectory(../library)
+add_subdirectory(../library build)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pthread")
 
