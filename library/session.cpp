@@ -18,8 +18,6 @@ void TSession::DoRead() {
     auto self(shared_from_this());
     Socket_.async_read_some(boost::asio::buffer(Data_, MESSAGE_LENGTH), [this, self](boost::system::error_code ec, std::size_t length) {
         if (!ec) {
-            std::cout << "YC\n";
-            //std::cout << std::string(Data_, length) << std::endl;
             TResolver resolver;
             const auto& request = TRequestParser::Parse(std::string(Data_, length));
             TReply reply;
@@ -31,7 +29,6 @@ void TSession::DoRead() {
                 reply.Content = "Bad request";
                 reply.Status = TReply::StatusType::NOT_FOUND;
             }
-            std::cout << reply.Content << std::endl;
             DoWrite(reply.Serialize());
         }
     });

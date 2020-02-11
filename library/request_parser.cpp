@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace {
-    void AddUriAndCgi(std::string_view data, TRequest result) {
+    void AddUriAndCgi(std::string_view data, TRequest& result) {
         auto endUri = data.find_first_of('?');
         result.Uri_ = data.substr(0, endUri);
         std::vector<std::string> cgiVector;
