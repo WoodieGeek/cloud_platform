@@ -6,8 +6,9 @@
 #include <string>
 #include <iostream>
 
-TSession::TSession(boost::asio::ip::tcp::socket socket)
-    : Socket_(std::move(socket))
+TSession::TSession(const TResolver& resolver, boost::asio::ip::tcp::socket socket)
+    : Resolver_(resolver)
+    , Socket_(std::move(socket))
 {}
 
 void TSession::Start() {
@@ -18,11 +19,10 @@ void TSession::DoRead() {
     auto self(shared_from_this());
     Socket_.async_read_some(boost::asio::buffer(Data_, MESSAGE_LENGTH), [this, self](boost::system::error_code ec, std::size_t length) {
         if (!ec) {
-            TResolver resolver;
             const auto& request = TRequestParser::Parse(std::string(Data_, length));
             TReply reply;
             if (request) {
-                reply.Content = resolver.Resolve(*request);
+                reply.Content = Resolver_.Resolve(*request);
                 reply.Status = TReply::StatusType::OK;
             }
             else {

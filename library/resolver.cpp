@@ -3,10 +3,7 @@
 #include <iostream>
 
 TResolver::TResolver() {
-    auto tmp = [](TRequest ) {
-        return "index ans";
-    };
-    ResolveHandle_["/index"] = tmp;
+
 }
 
 std::string TResolver::Resolve(TRequest request) const {
@@ -15,5 +12,9 @@ std::string TResolver::Resolve(TRequest request) const {
     } else {
         return "bad uri";
     }
+}
+
+void TResolver::AddHander(const std::string& nameHandler, const std::function<std::string(TRequest)>& handler) {
+    ResolveHandle_[nameHandler] = handler;
 }
 

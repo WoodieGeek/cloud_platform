@@ -7,7 +7,7 @@ TServer::TServer(const std::string& address, const std::string& port)
     : Acceptor_(IoService_)
     , Socket_(IoService_)
 {
-    std::cout << "construct server\n";
+    std::cout << "Construct server\n";
     boost::asio::ip::tcp::resolver resolver(IoService_);
     boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
     Acceptor_.open(endpoint.protocol());
@@ -24,7 +24,7 @@ void TServer::DoAccept() {
                 return;
             }
             if (!ec) {
-                std::make_shared<TSession>(std::move(Socket_))->Start();
+                std::make_shared<TSession>(Resolver_, std::move(Socket_))->Start();
             }
             DoAccept();
     });
@@ -32,6 +32,10 @@ void TServer::DoAccept() {
 
 void TServer::Run() {
     IoService_.run();
+}
+
+void TServer::AddHandler(const std::string& handlerName, const std::function<std::string(TRequest)>& handler) {
+    Resolver_.AddHander(handlerName, handler);
 }
 
 
