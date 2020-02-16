@@ -9,7 +9,8 @@
 TSession::TSession(const TResolver& resolver, boost::asio::ip::tcp::socket socket)
     : Resolver_(resolver)
     , Socket_(std::move(socket))
-{}
+{
+}
 
 void TSession::Start() {
     DoRead();
@@ -22,12 +23,11 @@ void TSession::DoRead() {
             const auto& request = TRequestParser::Parse(std::string(Data_, length));
             TReply reply;
             if (request) {
-                reply.Content = Resolver_.Resolve(*request);
-                reply.Status = TReply::StatusType::OK;
+                reply = Resolver_.Resolve(*request);
             }
             else {
                 reply.Content = "Bad request";
-                reply.Status = TReply::StatusType::NOT_FOUND;
+                reply.Status = TReply::EStatusType::NOT_FOUND;
             }
             DoWrite(reply.Serialize());
         }

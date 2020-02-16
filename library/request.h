@@ -4,8 +4,9 @@
 #include <vector>
 
 struct TRequest {
-    std::string Method_;
-    std::string Uri_;
-    std::vector<std::pair<std::string, std::string>> Headers_;
-    std::vector<std::pair<std::string, std::string>> Cgi_;
+    std::string Method;
+    std::string Uri;
+    std::vector<std::pair<std::string, std::string>> Headers;
+    std::vector<std::pair<std::string, std::string>> Cgi;
+    std::string Content;
 };

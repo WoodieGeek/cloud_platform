@@ -34,7 +34,8 @@ void TServer::Run() {
     IoService_.run();
 }
 
-void TServer::AddHandler(const std::string& handlerName, const std::function<std::string(TRequest)>& handler) {
+
+void TServer::AddHandler(const std::string& handlerName, const std::function<TReply(TRequest)>& handler) {
     Resolver_.AddHander(handlerName, handler);
 }
 

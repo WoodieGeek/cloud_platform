@@ -9,7 +9,7 @@ public:
 
     explicit TServer(const std::string& address, const std::string& port);
     void Run();
-    void AddHandler(const std::string& handleName, const std::function<std::string(TRequest)>& handler);
+    void AddHandler(const std::string& handlerName, const std::function<TReply(TRequest)>& handler);
 private:
     void DoAccept();
 private:

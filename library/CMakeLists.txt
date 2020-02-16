@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(library)
+project(server_library)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pthread") 
 
-set(SOURCE_LIB server.cpp session.cpp request_parser.cpp request_parser.h resolver.cpp reply.cpp)
+set(SOURCE_FILES server.cpp session.cpp request_parser.cpp resolver.cpp reply.cpp)
 
-add_library(library STATIC ${SOURCE_LIB})
+set(HEADER_FILES server.h session.h request_parser.h resolver.h reply.h request.h)
+
+source_group("sources" FILES ${SOURCE_FILES})
+source_group("headers" FILES ${HEADER_FILES})
+
+add_library(server_library STATIC ${SOURCE_FILES} ${HEADER_FILES})

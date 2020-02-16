@@ -1,16 +1,22 @@
 #include "reply.h"
-#include <sstream>
 
+#include <sstream>
 #include <iostream>
+
+TReply::TReply(const std::string& content, EStatusType status)
+    : Status(status)
+    , Content(content)
+{
+}
 
 std::string TReply::Serialize() {
     std::stringstream result;
     switch (Status) {
-        case StatusType::OK:{
+        case EStatusType::OK:{
             result << "HTTP/1.0 200 OK\r\n\r\n";
             break;
         }
-        case StatusType::NOT_FOUND: {
+        case EStatusType::NOT_FOUND: {
             result << "HTTP/1.0 404 Not Found\r\n\r\n";
             break;
         }
