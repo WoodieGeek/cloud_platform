@@ -1,6 +1,9 @@
 #include "server.h"
 #include <iostream>
 #include <fstream>
+#include <nlohmann/json.hpp>
+
+#include "base64.hpp"
 
 TServerWrapper::TServerWrapper(const std::string& address, const std::string& port)
     : Server_(address, port) {
@@ -18,16 +21,16 @@ TServerWrapper::TServerWrapper(const std::string& address, const std::string& po
     });
     Server_.Run();
 }
+
 TReply TServerWrapper::Run(const TRequest& request) {
-    const auto endOfInit = request.Content.find_first_of('\n');
-    std::string initString {request.Content.begin(), request.Content.begin() + endOfInit};
-    std::string binary {request.Content.cbegin() + endOfInit + 1, request.Content.cend()};
+    auto requestJson = nlohmann::json::parse(request.Content);
     std::ofstream outBinary {"binary"};
-    outBinary << binary;
+    outBinary << boost::beast::detail::base64_decode(requestJson["binary"]);
     outBinary.close();
     boost::process::child chmod("chmod +x binary");
     chmod.wait();
-    Process_.reset(new TSubProcess("./binary " + initString));
+    //Process_.reset(new TSubProcess("./binary " + initString));
+    Process_.reset(new TSubProcess("./binary >> out.txt"));
     return {"OK", TReply::EStatusType::OK};
 }
 

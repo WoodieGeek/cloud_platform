@@ -12,6 +12,6 @@ private:
 private:
     const TResolver& Resolver_;
     boost::asio::ip::tcp::socket Socket_;
-    static constexpr std::size_t MESSAGE_LENGTH = 1024;
+    static constexpr std::size_t MESSAGE_LENGTH = 102400;
     char Data_[MESSAGE_LENGTH];
 };

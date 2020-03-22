@@ -25,7 +25,7 @@ namespace {
 
 std::optional<TRequest> TRequestParser::Parse(const std::string_view data) {
     std::vector<std::string> lines;
-    boost::split(lines, data, [](char c) {return c == '\n';});
+    boost::split(lines, data, boost::is_any_of("\n"));
     if (lines.empty()) {
         return {};
     }
@@ -37,16 +37,23 @@ std::optional<TRequest> TRequestParser::Parse(const std::string_view data) {
     TRequest result;
     result.Method = std::move(first_line[0]);
     AddUriAndCgi(first_line[1], result);
-    for (size_t i = 1; i < lines.size() - 1; i++) {
-        std::vector<std::string> key_value;
-        boost::split(key_value, lines[i], boost::is_any_of(": "));
-        if (key_value.size() != 2) {
-            continue;
+    bool isContent = false;
+    for (size_t i = 1; i < lines.size(); i++) {
+        if (lines[i].size() == 1 && lines[i][0] == '\r') {
+            isContent = true;
         }
-        result.Headers.emplace_back(std::move(key_value[0]), std::move(key_value[1]));
+        if (isContent) {
+            result.Content += lines[i];
+        } else {
+            std::vector<std::string> key_value;
+            boost::split(key_value, lines[i], boost::is_any_of(": "));
+            if (key_value.size() != 2) {
+                continue;
+            }
+            result.Headers.emplace_back(std::move(key_value[0]), std::move(key_value[1]));
+        }
     }
-    if (!lines.back().empty()) {
-        result.Content = lines.back();
-    }
+    std::cout << "!\n";
+    std::cout << data.size() << " "  << result.Content.size()  << std::endl;
     return {result};
 }
