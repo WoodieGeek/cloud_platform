@@ -10,6 +10,8 @@ public:
 private:
     TReply Create(const TRequest& request);
     TReply Results(const TRequest& request);
+    TReply Graph(const TRequest& request);
+    TReply GraphUpdate(const TRequest& request);
 private:
     TServer Server_;
     pqxx::connection Connection_;

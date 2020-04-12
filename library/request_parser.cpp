@@ -17,7 +17,7 @@ namespace {
             if (key_value.size() != 2) {
                 continue;
             }
-            result.Cgi.emplace_back(std::move(key_value[0]), std::move(key_value[1]));
+            result.Cgi.insert({std::move(key_value[0]), std::move(key_value[1])});
         }
     }
 }
@@ -53,7 +53,6 @@ std::optional<TRequest> TRequestParser::Parse(const std::string_view data) {
             result.Headers.emplace_back(std::move(key_value[0]), std::move(key_value[1]));
         }
     }
-    std::cout << "!\n";
-    std::cout << data.size() << " "  << result.Content.size()  << std::endl;
+    result.Content.erase(result.Content.begin());
     return {result};
 }

@@ -25,7 +25,6 @@ std::string TReply::Serialize() {
         result << header << ": " << value << '\n';
     }
     result << Content;
-    std::cout << result.str() << std::endl;
     return result.str();
 };
 
