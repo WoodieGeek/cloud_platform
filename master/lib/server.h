@@ -1,4 +1,5 @@
 #include "../../library/server.h"
+#include "instances.h"
 
 #include <pqxx/pqxx>
 
@@ -12,6 +13,7 @@ private:
     TReply Results(const TRequest& request);
     TReply Graph(const TRequest& request);
     TReply GraphUpdate(const TRequest& request);
+    TReply RunGraph(const TRequest& reqeust);
 private:
     TServer Server_;
     pqxx::connection Connection_;
