@@ -1,4 +1,5 @@
 #include "server.h"
+#include "bfs.h"
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -93,6 +94,28 @@ TReply TMasterServer::GraphUpdate(const TRequest& request) {
     pqxx::result resultSelect{W.exec(query.str())};
     W.commit();
     return {"DONE", TReply::EStatusType::NOT_FOUND};
+}
+
+TReply TMasterServer::RunGraph(const TRequest& request) {
+    const std::string cgiName = "id";
+    const std::string tableName = "jaunt.results";
+    if (!request.Cgi.count(cgiName)) {
+        return {"NO ID", TReply::EStatusType::NOT_FOUND};
+    }
+    pqxx::work W{Connection_};
+    std::stringstream query;
+    query << "INSERT INTO << " <<  tableName << " (graph_id, start_time, input, status) ";
+    query << "VALUES (" << request.Cgi.find(cgiName)->second << ", now(), '" << request.Content << "', 'RUNNING') ";
+    query << "RETURNING id ";
+    pqxx::result resultInsert{W.exec(query.str())};
+    W.commit();
+    std::string resultID;
+    if (!resultInsert.empty() && !resultInsert.front().empty()) {
+        resultID = resultInsert.front().front().view();
+        std::make_shared<TBfs>(Connection_, InstancesHolder_, stoi(resultID))->Start();
+        return {"DONE", TReply::EStatusType::OK};
+    }
+    return {"Bad request", TReply::EStatusType::NOT_FOUND};
 }
 
 

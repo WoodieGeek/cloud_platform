@@ -17,4 +17,5 @@ private:
 private:
     TServer Server_;
     pqxx::connection Connection_;
+    TInstancesHolder InstancesHolder_;
 };
