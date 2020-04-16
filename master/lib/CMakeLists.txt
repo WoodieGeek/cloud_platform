@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 
 project(master_server_lib)
 
-set(SOURCE_FILES server.cpp)
+set(SOURCE_FILES server.cpp bfs.cpp instances.cpp graph.cpp)
 
-set(HEADER_FILES server.h)
+set(HEADER_FILES server.h bfs.h instances.h task.h graph.h)
 
 source_group("sources" FILES ${SOURCE_FILES})
 source_group("headers" FILES ${HEADER_FILES})

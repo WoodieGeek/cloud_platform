@@ -7,7 +7,7 @@ find_package(Boost COMPONENTS chrono filesystem REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -lpqxx -lpq -std=c++1z" )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -lpqxx -lpq -std=c++1z -g" )
 
 include_directories(${Boost_INCLUDE_DIRS} ../library lib)
 

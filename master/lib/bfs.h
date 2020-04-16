@@ -31,6 +31,6 @@ private:
     std::unordered_map<std::string, std::string> Results_;
     std::unordered_map<std::string, int> InputNodes_;
 
-    const std::string START_NODE = "REQUEST";
-    const std::string FINISH_NODE = "RESPONSE";
+    const std::string START_NODE = "START";
+    const std::string FINISH_NODE = "FINISH";
 };

@@ -3,8 +3,9 @@
 
 #include <bits/stdc++.h>
 
-TServer::TServer(const std::string& address, const std::string& port)
-    : Acceptor_(IoService_)
+TServer::TServer(boost::asio::io_service& ioService, const std::string& address, const std::string& port)
+    : IoService_(ioService)
+    , Acceptor_(IoService_)
     , Socket_(IoService_)
 {
     std::cout << "Construct server\n";

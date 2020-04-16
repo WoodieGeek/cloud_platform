@@ -1,27 +1,31 @@
 #include "instances.h"
 #include <nlohmann/json.hpp>
+#include <iostream>
 
 
 TInstancesHolder::TInstancesHolder(boost::asio::io_service& ioService) : Client_(ioService) {
-    Instances_.emplace_back("127.0.0.1", 1001);
-    Instances_.emplace_back("127.0.0.1", 1002);
+    Instances_.push_back({"127.0.0.1", 10001});
+    Instances_.push_back({"127.0.0.1", 10002});
     const auto threadCount = Instances_.size();
     Threads_.reserve(threadCount);
     for (size_t i = 0; i < threadCount; ++i) {
         Threads_.emplace_back([this, host = Instances_[i]] {
             while (this->Active_) {
-                TTask task;
+                std::optional<TTask> task;
                 std::function<void(const TTaskResult&)> callback;
                 {
                     std::unique_lock<std::mutex> lock(this->QueueMutex_);
                     this->Condition_.wait(lock, [this] {
-                            this->Active_ && !this->Tasks_.empty();
+                        return this->Active_ && !this->Tasks_.empty();
                     });
                     if (!Tasks_.empty()) {
                         task = std::move(this->Tasks_.front().first);
-                        callback =  std::move(this->Tasks_.front().second);
+                        callback = std::move(this->Tasks_.front().second);
                         Tasks_.pop();
                     }
+                }
+                if (task.has_value()) {
+                    RunProcess(host, *task, callback);
                 }
             }
         });
@@ -42,6 +46,7 @@ void TInstancesHolder::Stop() {
 }
 
 void TInstancesHolder::RunProcess(const THost& host, const TTask& task, std::function<void(const TTaskResult&)> callback) {
+    std::cerr << "Run Process\n";
     TRequest request;
     request.Method = "GET";
     request.Uri = "/run";

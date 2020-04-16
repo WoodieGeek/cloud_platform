@@ -7,8 +7,9 @@
 TMasterServer::TMasterServer(const std::string& address,
                              const std::string& port,
                              const std::string& connection)
-    : Server_(address, port)
+    : Server_(IoSerivce_, address, port)
     , Connection_(connection)
+    , InstancesHolder_(IoSerivce_)
 {
     Server_.AddHandler("/create", [this](const TRequest& request) {
             return Create(request);
@@ -22,6 +23,14 @@ TMasterServer::TMasterServer(const std::string& address,
     Server_.AddHandler("/graph_update", [this](const TRequest& request) {
             return GraphUpdate(request);
     });
+    Server_.AddHandler("/binary_update", [this](const TRequest& request) {
+            return BinaryUpdate(request);
+    });
+    Server_.AddHandler("/run", [this](const TRequest& request) {
+            return RunGraph(request);
+    });
+
+
     Server_.Run();
 }
 
@@ -102,20 +111,46 @@ TReply TMasterServer::RunGraph(const TRequest& request) {
     if (!request.Cgi.count(cgiName)) {
         return {"NO ID", TReply::EStatusType::NOT_FOUND};
     }
-    pqxx::work W{Connection_};
     std::stringstream query;
-    query << "INSERT INTO << " <<  tableName << " (graph_id, start_time, input, status) ";
+    query << "INSERT INTO  " <<  tableName << " (graph_id, start_time, input, status) ";
     query << "VALUES (" << request.Cgi.find(cgiName)->second << ", now(), '" << request.Content << "', 'RUNNING') ";
     query << "RETURNING id ";
-    pqxx::result resultInsert{W.exec(query.str())};
-    W.commit();
-    std::string resultID;
-    if (!resultInsert.empty() && !resultInsert.front().empty()) {
-        resultID = resultInsert.front().front().view();
-        std::make_shared<TBfs>(Connection_, InstancesHolder_, stoi(resultID))->Start();
-        return {"DONE", TReply::EStatusType::OK};
+
+    try {
+        pqxx::work W{Connection_};
+        pqxx::result resultInsert{W.exec(query.str())};
+        W.commit();
+        std::string resultID;
+        if (!resultInsert.empty() && !resultInsert.front().empty()) {
+            resultID = resultInsert.front().front().view();
+            std::make_shared<TBfs>(Connection_, InstancesHolder_, stoi(resultID))->Start();
+            return {"DONE", TReply::EStatusType::OK};
+        }
+    } catch (const pqxx::sql_error& error) {
+        std::cerr << error.what() << std::endl;
     }
     return {"Bad request", TReply::EStatusType::NOT_FOUND};
 }
 
-
+TReply TMasterServer::BinaryUpdate(const TRequest& request) {
+    const std::string cgiGraphId = "graph_id";
+    const std::string cgiNode = "node";
+    const std::string tableName = "jaunt.binaries";
+    if (!request.Cgi.count(cgiGraphId) || !request.Cgi.count(cgiNode)) {
+        return {"NO graph_id or node", TReply::EStatusType::NOT_FOUND};
+    }
+    std::stringstream query;
+    query << "INSERT INTO " << tableName << "  (graph_id , node , binary_base64) ";
+    query << " VALUES (" << request.Cgi.find(cgiGraphId)->second << ", ";
+    query << "'" << request.Cgi.find(cgiNode)->second << "', '" << request.Content << "') "; 
+    query << "ON CONFLICT (graph_id, node) do update  SET binary_base64 = '" << request.Content << "'";
+    try {
+        pqxx::work W{Connection_};
+        pqxx::result resultUpsert{W.exec(query.str())};
+        W.commit();
+    } catch (pqxx::sql_error e) {
+        std::cerr << e.what() << "sad\n";
+        return {"Bad request", TReply::EStatusType::NOT_FOUND};
+    }
+    return {"DONE", TReply::EStatusType::OK};
+}

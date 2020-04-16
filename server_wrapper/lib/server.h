@@ -10,6 +10,7 @@ private:
     TReply IsRunning(const TRequest&);
     TReply GetResponse(const TRequest&);
 private:
+    boost::asio::io_service IoService_;
     TServer Server_;
     std::unique_ptr<TSubProcess> Process_;
 };

@@ -6,7 +6,7 @@
 #include "base64.hpp"
 
 TServerWrapper::TServerWrapper(const std::string& address, const std::string& port)
-    : Server_(address, port) {
+    : Server_(IoService_, address, port) {
     Server_.AddHandler("/run", [this](const TRequest& request) {
             return Run(request);
     });
@@ -29,7 +29,6 @@ TReply TServerWrapper::Run(const TRequest& request) {
     outBinary.close();
     boost::process::child chmod("chmod +x binary");
     chmod.wait();
-    //Process_.reset(new TSubProcess("./binary " + initString));
     Process_.reset(new TSubProcess("./binary >> out.txt"));
     return {"OK", TReply::EStatusType::OK};
 }

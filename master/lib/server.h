@@ -14,7 +14,9 @@ private:
     TReply Graph(const TRequest& request);
     TReply GraphUpdate(const TRequest& request);
     TReply RunGraph(const TRequest& reqeust);
+    TReply BinaryUpdate(const TRequest& request);
 private:
+    boost::asio::io_service IoSerivce_;
     TServer Server_;
     pqxx::connection Connection_;
     TInstancesHolder InstancesHolder_;

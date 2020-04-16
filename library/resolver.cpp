@@ -7,6 +7,7 @@ TResolver::TResolver() {
 }
 
 TReply TResolver::Resolve(TRequest request) const {
+    std::cout << request.Uri << std::endl;
     if (ResolveHandle_.count(request.Uri)) {
         return ResolveHandle_.at(request.Uri)(request);
     } else {

@@ -1,4 +1,5 @@
 #include "bfs.h"
+#include <iostream>
 
 TBfs::TBfs(pqxx::connection& connection, TInstancesHolder& instancesHolder, const int resultID)
     : Connection_(connection)
@@ -15,7 +16,7 @@ std::unordered_map<std::string, std::string> TBfs::GetBinaries() {
     std::string tableName = "jaunt.binaries";
     pqxx::work worker{Connection_};
     std::stringstream query;
-    query << "SELECT name, binary_base64 FROM " << tableName << " WHERE graph_id = " << Graph_.GraphID;
+    query << "SELECT node, binary_base64 FROM " << tableName << " WHERE graph_id = " << Graph_.GraphID;
     pqxx::result resultSelect{worker.exec(query.str())};
     worker.commit();
     for (const auto& row : resultSelect) {
@@ -29,13 +30,13 @@ std::unordered_map<std::string, std::string> TBfs::GetBinaries() {
 
 void TBfs::PrepareGraph() {
     const std::string jauntResult = "jaunt.results";
-    const std::string jauntGraph = "jaunt.graph";
+    const std::string jauntGraph = "jaunt.graphs";
     pqxx::work worker{Connection_};
     std::stringstream query;
-    query << "SELECT graph.graph, result.input, graph.id FROM " << jauntResult << " as reusults ";
+    query << "SELECT graph.graph, result.input, graph.id FROM " << jauntResult << " as result ";
     query << " JOIN " << jauntGraph << " as graph ";
     query << " ON result.graph_id = graph.id ";
-    query << " WHERE id = " << ResultID_;
+    query << " WHERE result.id = " << ResultID_;
     pqxx::result resultSelect{worker.exec(query.str())};
     worker.commit();
     if (!resultSelect.empty() && resultSelect.front().size() == 3) {
@@ -67,13 +68,12 @@ void TBfs::PrepareNodes() {
     }
 }
 
-
-
 void TBfs::Start() {
     Go(START_NODE);
 }
 
 void TBfs::Go(const std::string& node) {
+    std::cerr << node << std::endl;
     for (const auto& to : Graph_.Graph[node]) {
         Tasks_[to].Inputs.push_back({node, Results_[node]});
         InputNodes_[to]--;

@@ -6,7 +6,7 @@
 int main() {
   try {
       std::cout << "Starting...\n";
-      TServerWrapper server("127.0.0.1", "8080");
+      TServerWrapper server("127.0.0.1", "10001");
   } catch (std::exception& e) {
       std::cerr << "Exception: " << e.what() << "\n";
   }
