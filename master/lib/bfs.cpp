@@ -16,7 +16,7 @@ std::unordered_map<std::string, std::string> TBfs::GetBinaries() {
     std::string tableName = "jaunt.binaries";
     pqxx::work worker{Connection_};
     std::stringstream query;
-    query << "SELECT node, binary_base64 FROM " << tableName << " WHERE graph_id = " << Graph_.GraphID;
+    query << "SELECT node, binary_base64 FROM " << tableName << " WHERE graph_id = " << GraphID_;
     pqxx::result resultSelect{worker.exec(query.str())};
     worker.commit();
     for (const auto& row : resultSelect) {
@@ -73,12 +73,12 @@ void TBfs::Start() {
 }
 
 void TBfs::Go(const std::string& node) {
-    std::cerr << node << std::endl;
     for (const auto& to : Graph_.Graph[node]) {
         Tasks_[to].Inputs.push_back({node, Results_[node]});
         InputNodes_[to]--;
         if (InputNodes_[to] == 0) {
             if (to == FINISH_NODE)  {
+                Results_[to] = Results_[node];
                 SetGraphResult();
             } else {
                 auto self(shared_from_this());
@@ -103,12 +103,16 @@ void TBfs::SetNodeResult(const std::string& node, const std::string& result) {
 
 void TBfs::SetGraphResult() {
     const std::string& tableName = "jaunt.results";
-    pqxx::work worker{Connection_};
     std::stringstream query;
-    query << "UPDATE " << tableName << " SET status = 'FINISHED', finish_time = now(), result = " << Results_[FINISH_NODE];
+    query << "UPDATE " << tableName << " SET status = 'FINISHED', finish_time = now(), output = '" << Results_[FINISH_NODE] << "' ";
     query << " WHERE id = " << ResultID_;
-    pqxx::result resultUpdate{worker.exec(query.str())};
-    worker.commit();
+    try {
+        pqxx::work worker{Connection_};
+        pqxx::result resultUpdate{worker.exec(query.str())};
+        worker.commit();
+    } catch (const pqxx::sql_error& error) {
+        std::cerr << error.what() << std::endl;
+    }
 }
 
 void TBfs::SetNodeStartTime(const std::string& node) {

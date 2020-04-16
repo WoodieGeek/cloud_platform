@@ -15,5 +15,7 @@ std::string TRequest::Serialize() const {
         result << key << ": " << value << "\r\n";
     }
     result << "\r\n";
+    result << Content << "\r\n";
+    result << "\r\n";
     return result.str();
 }

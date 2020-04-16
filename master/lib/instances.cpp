@@ -34,6 +34,7 @@ TInstancesHolder::TInstancesHolder(boost::asio::io_service& ioService) : Client_
 
 void TInstancesHolder::Run(TTask task, std::function<void(const TTaskResult&)> callback) {
     Tasks_.push({std::move(task), std::move(callback)});
+    Condition_.notify_one();
 }
 
 void TInstancesHolder::Stop() {
@@ -48,8 +49,9 @@ void TInstancesHolder::Stop() {
 void TInstancesHolder::RunProcess(const THost& host, const TTask& task, std::function<void(const TTaskResult&)> callback) {
     std::cerr << "Run Process\n";
     TRequest request;
-    request.Method = "GET";
+    request.Method = "POST";
     request.Uri = "/run";
+    request.Headers.push_back({"Content-Type", "application/json"});
     nlohmann::json content;
     content["binary"] = task.Binary;
     nlohmann::json inputs;
@@ -86,7 +88,7 @@ void TInstancesHolder::PingProcess(const THost& host, std::function<void(const T
 void TInstancesHolder::AnswerProcess(const THost& host, std::function<void(const TTaskResult&)> callback) {
     TRequest request;
     request.Method = "GET";
-    request.Uri = "/get_reponse";
+    request.Uri = "/get_response";
     Client_.HttpRequest(host.ip, host.port, request, [callback] (const TReply& reply) {
         if (reply.Status == TReply::EStatusType::OK) {
             TTaskResult result;
