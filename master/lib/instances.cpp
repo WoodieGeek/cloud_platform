@@ -5,7 +5,6 @@
 
 TInstancesHolder::TInstancesHolder(boost::asio::io_service& ioService) : Client_(ioService) {
     Instances_.push_back({"127.0.0.1", 10001});
-    Instances_.push_back({"127.0.0.1", 10002});
     const auto threadCount = Instances_.size();
     Threads_.reserve(threadCount);
     for (size_t i = 0; i < threadCount; ++i) {
@@ -47,7 +46,6 @@ void TInstancesHolder::Stop() {
 }
 
 void TInstancesHolder::RunProcess(const THost& host, const TTask& task, std::function<void(const TTaskResult&)> callback) {
-    std::cerr << "Run Process\n";
     TRequest request;
     request.Method = "POST";
     request.Uri = "/run";
@@ -63,39 +61,37 @@ void TInstancesHolder::RunProcess(const THost& host, const TTask& task, std::fun
     }
     content["inputs"] = std::move(inputs);
     request.Content = content.dump();
-    Client_.HttpRequest(host.ip, host.port, request, [this, host, callback] (const TReply& reply) {
-        if (reply.Status == TReply::EStatusType::OK) {
-            PingProcess(host, callback);
-        }
-    });
+    auto reply = Client_.HttpRequest(host.ip, host.port, request);
+    if (reply.Status == TReply::EStatusType::OK) {
+        PingProcess(host, callback);
+    }
 }
 
 void TInstancesHolder::PingProcess(const THost& host, std::function<void(const TTaskResult&)> callback) {
     TRequest request;
     request.Method = "GET";
     request.Uri = "/is_running";
-    Client_.HttpRequest(host.ip, host.port, request, [this, host, callback] (const TReply& reply) {
-        if (reply.Status == TReply::EStatusType::OK) {
-            if (reply.Content  == "true") {
-                AnswerProcess(host, callback);
-            } else if (reply.Content == "false") {
-                PingProcess(host, callback);
-            }
+    auto reply = Client_.HttpRequest(host.ip, host.port, request);
+    if (reply.Status == TReply::EStatusType::OK) {
+        if (reply.Content == "false") {
+            AnswerProcess(host, callback);
+        } else if (reply.Content == "true") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            PingProcess(host, callback);
         }
-    });
+    }
 }
 
 void TInstancesHolder::AnswerProcess(const THost& host, std::function<void(const TTaskResult&)> callback) {
     TRequest request;
     request.Method = "GET";
     request.Uri = "/get_response";
-    Client_.HttpRequest(host.ip, host.port, request, [callback] (const TReply& reply) {
-        if (reply.Status == TReply::EStatusType::OK) {
-            TTaskResult result;
-            result.Result = reply.Content;
-            callback(result);
-        }
-    });
+    auto reply = Client_.HttpRequest(host.ip, host.port, request);
+    if (reply.Status == TReply::EStatusType::OK) {
+        TTaskResult result;
+        result.Result = reply.Content;
+        callback(result);
+    }
 }
 
 
