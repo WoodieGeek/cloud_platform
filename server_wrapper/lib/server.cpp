@@ -25,6 +25,22 @@ TServerWrapper::TServerWrapper(const std::string& address, const std::string& po
 TReply TServerWrapper::Run(const TRequest& request) {
     auto requestJson = nlohmann::json::parse(request.Content);
     std::ofstream outBinary {"binary"};
+    if (!requestJson.contains("binary")) {
+        return {"Don't have binary in json", TReply::EStatusType::NOT_FOUND};
+    }
+    if (!requestJson.contains("inputs") || !requestJson["inputs"].is_array() ) {
+        return {"Don't have inputs in json", TReply::EStatusType::NOT_FOUND};
+    }
+    for (const auto& input : requestJson["inputs"]) {
+        if (!input.is_structured()) {
+            continue;
+        }
+        if (input.contains("content") && input.contains("name")) {
+            std::ofstream inputFile {input["name"].get<std::string>() + ".txt"};
+            inputFile << input["content"].get<std::string>();
+            inputFile.close();
+        }
+    }
     outBinary << boost::beast::detail::base64_decode(requestJson["binary"]);
     outBinary.close();
     boost::process::child chmod("chmod +x binary");

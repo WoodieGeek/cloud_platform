@@ -53,11 +53,6 @@ void TBfs::PrepareTasks() {
         task.Binary = binary;
         Tasks_[name] = std::move(task);
     }
-    Results_[START_NODE] = Input_;
-    TFile file{START_NODE, Input_};
-    for (const auto& value : Graph_.Graph[START_NODE]) {
-        Tasks_[value].Inputs.emplace_back(file);
-    }
 }
 
 void TBfs::PrepareNodes() {
