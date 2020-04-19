@@ -29,6 +29,10 @@ TMasterServer::TMasterServer(const std::string& address,
     Server_.AddHandler("/run", [this](const TRequest& request) {
             return RunGraph(request);
     });
+    Server_.AddHandler("/graphs", [this](const TRequest& request) {
+            return AllGraphs(request);
+    });
+
 
 
     Server_.Run();
@@ -153,4 +157,28 @@ TReply TMasterServer::BinaryUpdate(const TRequest& request) {
         return {"Bad request", TReply::EStatusType::NOT_FOUND};
     }
     return {"DONE", TReply::EStatusType::OK};
+}
+
+TReply TMasterServer::AllGraphs(const TRequest&) {
+    std::string query = "SELECT id, name FROM jaunt.graphs";
+    try {
+        pqxx::work W{Connection_};
+        pqxx::result resultSelect{W.exec(query)};
+        nlohmann::json allGraphs;
+        for (const auto& row : resultSelect) {
+            if (row.size() != 2) {
+                continue;
+            }
+            nlohmann::json graphJson;
+            graphJson["id"] = std::string{row[0].view()};
+            graphJson["name"] = std::string{row[1].view()};
+            allGraphs.push_back(std::move(graphJson));
+        }
+        nlohmann::json result;
+        result["set"] = std::move(allGraphs);
+        return {result.dump(), TReply::EStatusType::OK};
+    } catch (const pqxx::sql_error& error) {
+        std::cerr << error.what() << std::endl;
+    }
+    return {{}, TReply::EStatusType::OK};
 }
