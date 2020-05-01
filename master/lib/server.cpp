@@ -44,13 +44,19 @@ TReply TMasterServer::Create(const TRequest& request) {
     if (!request.Cgi.count(cgiName)) {
         return {"No name in cgi", TReply::EStatusType::NOT_FOUND};
     }
-    pqxx::work W{Connection_};
     std::stringstream query;
     query << "INSERT INTO " << tableName << " (name) VALUES ('" << request.Cgi.find(cgiName)->second << "') RETURNING id";
-    pqxx::result resultInsert{W.exec(query.str())};
-    W.commit();
-    if (!resultInsert.empty() && !resultInsert.front().empty()) {
-        return {std::string{resultInsert.front().front().view()}, TReply::EStatusType::OK};
+
+    try {
+        pqxx::work W{Connection_};
+        pqxx::result resultInsert{W.exec(query.str())};
+        W.commit();
+        if (!resultInsert.empty() && !resultInsert.front().empty()) {
+            return {std::string{resultInsert.front().front().view()}, TReply::EStatusType::OK};
+        }
+    } catch (const pqxx::sql_error& error) {
+        std::cerr << error.what() << std::endl;
+        return {"Bad request", TReply::EStatusType::NOT_FOUND};
     }
     return {"Bad request", TReply::EStatusType::NOT_FOUND};
 }
@@ -101,11 +107,16 @@ TReply TMasterServer::GraphUpdate(const TRequest& request) {
     if (!request.Cgi.count(cgiName)) {
         return {"No ID", TReply::EStatusType::NOT_FOUND};
     }
-    pqxx::work W{Connection_};
     std::stringstream query;
     query << "UPDATE " << tableName << " SET graph = '" << request.Content << "' WHERE id = " <<  request.Cgi.find(cgiName)->second;
-    pqxx::result resultSelect{W.exec(query.str())};
-    W.commit();
+    try {
+        pqxx::work W{Connection_};
+        pqxx::result resultSelect{W.exec(query.str())};
+        W.commit();
+    } catch (const pqxx::sql_error& error) {
+        std::cerr << error.what() << std::endl;
+        return {"Bad request", TReply::EStatusType::NOT_FOUND};
+    }
     return {"DONE", TReply::EStatusType::NOT_FOUND};
 }
 

@@ -64,6 +64,7 @@ void TBfs::PrepareNodes() {
 }
 
 void TBfs::Start() {
+    Results_[START_NODE] = Input_;
     Go(START_NODE);
 }
 
