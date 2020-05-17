@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost COMPONENTS chrono filesystem REQUIRED)
+find_package(Boost COMPONENTS chrono filesystem program_options REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS} ../library lib)
