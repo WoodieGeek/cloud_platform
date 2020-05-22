@@ -22,7 +22,7 @@ struct THost {
 
 class TInstancesHolder {
 public:
-    TInstancesHolder(boost::asio::io_service& ioService);
+    TInstancesHolder(boost::asio::io_service& ioService, std::vector<THost> instances);
     void Run(TTask task, std::function<void(const TTaskResult&)> callback);
     void Stop();
 private:

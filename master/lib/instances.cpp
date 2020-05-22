@@ -3,8 +3,9 @@
 #include <iostream>
 
 
-TInstancesHolder::TInstancesHolder(boost::asio::io_service& ioService) : Client_(ioService) {
-    Instances_.push_back({"127.0.0.1", 10001});
+TInstancesHolder::TInstancesHolder(boost::asio::io_service& ioService, std::vector<THost> instances) 
+    : Instances_(std::move(instances))
+    , Client_(ioService) {
     const auto threadCount = Instances_.size();
     Threads_.reserve(threadCount);
     for (size_t i = 0; i < threadCount; ++i) {

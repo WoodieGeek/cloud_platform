@@ -6,10 +6,12 @@
 
 TMasterServer::TMasterServer(const std::string& address,
                              const std::string& port,
-                             const std::string& connection)
-    : Server_(IoSerivce_, address, port)
+                             const std::string& connection,
+                             TServerOptions serverOptions)
+    : ServerOptions_(std::move(serverOptions))
+    , Server_(IoSerivce_, address, port)
     , Connection_(connection)
-    , InstancesHolder_(IoSerivce_)
+    , InstancesHolder_(IoSerivce_, ServerOptions_.Instances)
 {
     Server_.AddHandler("/create", [this](const TRequest& request) {
             return Create(request);
